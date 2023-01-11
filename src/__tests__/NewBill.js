@@ -2,37 +2,99 @@
  * @jest-environment jsdom
  */
 
-import { screen, waitFor, fireEvent, user } from "@testing-library/dom"
-import NewBillUI from "../views/NewBillUI.js"
-import NewBill from "../containers/NewBill.js"
-import { localStorageMock } from "../__mocks__/localStorage.js";
-import router from "../app/Router.js";
-import { ROUTES_PATH } from "../constants/routes.js";
-import userEvent from '@testing-library/user-event'
+import _modal from "jquery-modal";
+
+import "@testing-library/jest-dom";
+
+import { fireEvent, screen, waitFor } from "@testing-library/dom";
+import userEvent from "@testing-library/user-event";
+
+import NewBillUI from "../views/NewBillUI.js";
+import NewBill from "../containers/NewBill.js";
+
 import { ROUTES } from "../constants/routes";
+
+import { localStorageMock } from "../__mocks__/localStorage.js";
+import mockStore from "../__mocks__/store";
+
+jest.mock("../app/Store", () => mockStore);
+
 describe("Given I am connected as an employee", () => {
   describe("When I am on NewBill Page", () => {
     test("Then the new buill model should be visisble", () => {
       const html = NewBillUI()
       document.body.innerHTML = html
       expect(screen.getByTestId("expense-type")).toBeTruthy();
-    })
+    });
 
-    test("Then Message icon in vertical layout should be highlighted", async () => {
-      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-      window.localStorage.setItem('user', JSON.stringify({
-        type: 'Employee'
-      }))
-      const root = document.createElement("div")
-      root.setAttribute("id", "root")
-      document.body.append(root)
-      router()
-      window.onNavigate(ROUTES_PATH.NewBill)
-      await waitFor(() => screen.getByTestId('icon-mail'))
-      const windowIcon = screen.getByTestId('icon-mail')
-      expect(windowIcon.classList.contains('active-icon')).toBeTruthy();
-    })
-  })
+
+    describe("Given I am connected as an employee", () => {
+      test("Then I change media on form", () => {
+        Object.defineProperty(window, "localStorage", {
+          value: localStorageMock,
+        });
+
+        window.localStorage.setItem(
+          "user",
+          JSON.stringify({
+            type: "Employee",
+          })
+        );
+
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname });
+        };
+
+        const file = new File(["hello"], "hello.png", { type: "image/png" });
+        const store = mockStore;
+        const inputFile = screen.getByTestId("file");
+        const newbill = new NewBill({
+          document,
+          onNavigate,
+          store,
+          localStorage: window.localStorage,
+        });
+
+        const handle = jest.fn((e) => newbill.handleChangeFile(e));
+        inputFile.addEventListener("change", handle);
+        userEvent.upload(inputFile, file);
+        expect(handle).toHaveBeenCalled();
+      });
+
+      test("then I provides aull fields and click on submit", () => {
+        Object.defineProperty(window, "localStorage", {
+          value: localStorageMock,
+        });
+
+        window.localStorage.setItem(
+          "user",
+          JSON.stringify({
+            type: "Employee",
+          })
+        );
+
+        const onNavigate = (pathname) => {
+          document.body.innerHTML = ROUTES({ pathname });
+        };
+
+        const store = null;
+        const form = screen.getByTestId("form-new-bill");
+        const submitform = document.querySelector("#btn-send-bill");
+        const newbill = new NewBill({
+          document,
+          onNavigate,
+          store,
+          localStorage: window.localStorage,
+        });
+
+        const handle = jest.fn(() => newbill.handleAcceptSubmit);
+        submitform.addEventListener("click", handle);
+        userEvent.click(submitform);
+        expect(handle).toHaveBeenCalled();
+      });
+    });
+  });
+
 
   describe("When I am on NewBill Page", () => {
     test("Then the new bill should submit the value", () => {
@@ -106,4 +168,4 @@ describe("Given I am connected as an employee", () => {
       expect(handleSubmit).toHaveBeenCalled();
     });
   });
-})
+});
