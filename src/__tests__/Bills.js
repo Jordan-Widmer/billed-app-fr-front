@@ -32,33 +32,41 @@ describe("Given I am connected as an employee", () => {
     });
 
     test("Then bill icon in vertical layout should be highlighted", async () => {
-      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-      window.localStorage.setItem('user', JSON.stringify({
-        type: 'Employee'
-      }))
-      const root = document.createElement("div")
-      root.setAttribute("id", "root")
-      document.body.append(root)
-      router()
-      window.onNavigate(ROUTES_PATH.Bills)
-      await waitFor(() => screen.getByTestId('icon-window'))
-      const windowIcon = screen.getByTestId('icon-window')
-      expect(windowIcon.classList.contains('active-icon')).toBeTruthy();
-    })
+      Object.defineProperty(window, "localStorage", {
+        value: localStorageMock,
+      });
+      window.localStorage.setItem(
+        "user",
+        JSON.stringify({
+          type: "Employee",
+        })
+      );
+      const root = document.createElement("div");
+      root.setAttribute("id", "root");
+      document.body.append(root);
+      router();
+      window.onNavigate(ROUTES_PATH.Bills);
+      await waitFor(() => screen.getByTestId("icon-window"));
+      const windowIcon = screen.getByTestId("icon-window");
+      expect(windowIcon.classList.contains("active-icon")).toBeTruthy();
+    });
 
     test("Should show the report when click on the eye button", () => {
-      document.body.innerHTML = BillsUI({ data: bills })
+      document.body.innerHTML = BillsUI({ data: bills });
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname });
       };
       let PREVIOUS_LOCATION = "";
       const store = jest.fn();
       const billss = new Bills({
-        document, onNavigate, store, localStorage
+        document,
+        onNavigate,
+        store,
+        localStorage,
       });
       const eyeButtons = screen.getAllByTestId("icon-eye")[0];
       const handleSubmit = jest.fn(() => billss.handleClickIconEye(eyeButtons));
-      eyeButtons.addEventListener('click', handleSubmit)
+      eyeButtons.addEventListener("click", handleSubmit);
       fireEvent.click(eyeButtons);
       expect(handleSubmit).toHaveBeenCalled();
     });
